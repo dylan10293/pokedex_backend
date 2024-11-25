@@ -11,12 +11,13 @@ app.listen(PORT, () => {
 
 const clientConfig = {
     user: 'postgres',
-    password: 'mypacepostgresql',
-    host: 'my-pace-postgresql.cb8ea6cg2ykd.us-east-2.rds.amazonaws.com',
+    password: 'mypacepokedexpostgresql',
+    host: 'pokedex-rds.cfqagimcm2pp.us-east-2.rds.amazonaws.com',
     port: 5432,
     ssl: {
         rejectUnauthorized: false,
     }
+
 };
 
 //boiler plate code for "get" request feel free to reuse for all routes
