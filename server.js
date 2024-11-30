@@ -27,6 +27,23 @@ const clientConfig = {
     }
 };
 
+const client = new Client(clientConfig);
+client.connect().then(() => {
+	console.log("Connected to the database");
+}).catch(err => {
+	console.error("Database connection error", err);
+});
+
+const updateDatabase = async (query, values, res) => {
+	try {
+		await client.query(query, values);
+		res.status(200).send({ message: 'Success' });
+	} catch (error) {
+		console.error(error);
+		res.status(300).send({ error: 'Invalid input' });
+	}
+};
+
 // List of all pokemons with all details
 app.get('/pokemon', async function (req, res) {
     try {
@@ -299,10 +316,25 @@ app.post("/pokemon/moves", async (req, res) => {
 
 app.post("/types", async (req, res) => {
     try {
-        const species = JSON.parse(req.query['details']);
+        const type = JSON.parse(req.query['details']);
         const client = new Client(clientConfig);
         await client.connect();
-        const result = await client.query("INSERT INTO TYPES(name) VALUES ($1::text);", [species['type_name']]);
+        const types_query = await client.query("INSERT INTO TYPES(name) VALUES ($1::text) RETURNING *;", [type['type_name']]);
+        const type_id = (types_query["rows"][0])["id"];
+
+        const type_strengths = type["strengths"];
+
+        type_strengths.forEach((id)=>{
+            const type_strength_query = client.query("INSERT INTO TYPE_EFFECTIVENESS(attacking_type_id, defending_type_id, effectiveness) VALUES($1::integer, $2::integer, 0.3);",[type_id,id]);
+        });
+
+        const type_weaknesses = type["weaknesses"];
+
+        type_weaknesses.forEach((id)=>{
+            const type_strength_query = client.query("INSERT INTO TYPE_EFFECTIVENESS(attacking_type_id, defending_type_id, effectiveness) VALUES($1::integer, $2::integer, 0.2);",[id,type_id]);
+        });
+        //REQUEST TYPE_ID:effecTIveneSS IN OBJECT FORMAT
+
         res.set("Content-Type", "application/json");
         res.send("Type added successfully!");
     } catch (ex) {
@@ -324,6 +356,117 @@ app.post("/nature", async (req, res) => {
         res.status(500).send("ERROR - INTERNAL SERVER ERROR");
     }
 });
+
+app.put('/pokemon', async (req, res) => {
+	const { id, name, species_id, moves, type, height, weight, stats } = req.body;
+	if (!id) return res.status(300).send({ error: 'ID is required' });
+
+	const query = `
+    UPDATE pokemon 
+    SET 
+      name = $2,
+      species_id = $3,
+      height = $4,
+      weight = $5
+    WHERE id = $1;
+  `;
+
+	try {
+		const roundedHeight = height ? Math.round(height) : null;
+		const roundedWeight = weight ? Math.round(weight) : null;
+
+		await client.query(query, [id, name, species_id, roundedHeight, roundedWeight]);
+
+
+		if (moves) {
+			await client.query(`DELETE FROM pokemon_moves WHERE pokemon_id = $1;`, [id]);
+			await client.query(`INSERT INTO pokemon_moves (pokemon_id, move_id) SELECT $1, UNNEST($2::int[]);`, [id, moves]);
+		}
+
+		if (type) {
+			await client.query(`DELETE FROM pokemon_types WHERE pokemon_id = $1;`, [id]);
+			await client.query(`INSERT INTO pokemon_types (pokemon_id, type_id) SELECT $1, UNNEST($2::int[]);`, [id, type]);
+		}
+
+		if (stats) {
+			const { hp, attack, defense, special_attack, special_defense, speed } = stats;
+			await client.query(`DELETE FROM pokemon_base_stats WHERE pokemon_id = $1;`, [id]);
+			await client.query(`
+        INSERT INTO pokemon_base_stats (pokemon_id, hp, attack, defense, special_attack, special_defense, speed)
+        VALUES ($1, $2, $3, $4, $5, $6, $7);
+      `, [id, hp, attack, defense, special_attack, special_defense, speed]);
+		}
+
+		res.status(200).send({ message: 'Success' });
+	} catch (error) {
+		console.error(error);
+		res.status(300).send({ error: 'Failed to update Pokémon' });
+	}
+});
+
+app.put('/species', async (req, res) => {
+	const { id, name } = req.body;
+	if (!id) return res.status(300).send({ error: 'ID is required' });
+
+	const query = `
+    UPDATE species 
+    SET 
+      name = $2
+    WHERE id = $1;
+  `;
+
+	await updateDatabase(query, [id, name], res);
+});
+
+app.put('/moves', async (req, res) => {
+	const { id, name, types_id, power, accuracy, power_point } = req.body;
+	if (!id) return res.status(300).send({ error: 'ID is required' });
+
+	const query = `
+    UPDATE moves 
+    SET 
+      name = $2,
+			types_id = $3,
+      power = $4,
+      accuracy = $5,
+      power_point = $6
+    WHERE id = $1;
+  `;
+
+	await updateDatabase(query, [id, name, types_id, power, accuracy, power_point], res);
+});
+
+app.put('/types', async (req, res) => {
+	const { id, name, effectiveness } = req.body;
+	if (!id) return res.status(300).send({ error: 'ID is required' });
+
+	const query = `
+    UPDATE types 
+    SET 
+      name = $2
+    WHERE id = $1;
+  `;
+	//TODO: update types effectiveness
+	await updateDatabase(query, [id, name], res);
+});
+
+app.put('/nature', async (req, res) => {
+	const { id, name, increased_stat, decreased_stat, description } = req.body;
+	if (!id) return res.status(300).send({ error: 'ID is required' });
+
+	const query = `
+    UPDATE natures
+    SET
+			name = $2,
+      increased_stat = $3,
+      decreased_stat = $4,
+      description = $5
+    WHERE id = $1;
+  `;
+
+	await updateDatabase(query, [id, name, increased_stat, decreased_stat, description], res);
+});
+
 
 // Delete a specific species by ID
 app.delete('/species/:id', async function (req, res) {
