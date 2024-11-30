@@ -38,12 +38,26 @@ const updateDatabase = async (query, values, res) => {
 	}
 };
 
+app.put('/types', async (req, res) => {
+	const { id, name, effectiveness } = req.body;
+	if (!id) return res.status(300).send({ error: 'ID is required' });
+
+	const query = `
+    UPDATE types 
+    SET 
+      name = $2
+    WHERE id = $1;
+  `;
+	//TODO: update types effectiveness
+	await updateDatabase(query, [id, name], res);
+});
+
 app.put('/nature', async (req, res) => {
 	const { id, name, increased_stat, decreased_stat, description } = req.body;
 	if (!id) return res.status(300).send({ error: 'ID is required' });
 
 	const query = `
-    UPDATE natures 
+    UPDATE natures
     SET
 			name = $2,
       increased_stat = $3,
