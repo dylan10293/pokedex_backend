@@ -38,6 +38,24 @@ const updateDatabase = async (query, values, res) => {
 	}
 };
 
+app.put('/moves', async (req, res) => {
+	const { id, name, types_id, power, accuracy, power_point } = req.body;
+	if (!id) return res.status(300).send({ error: 'ID is required' });
+
+	const query = `
+    UPDATE moves 
+    SET 
+      name = $2,
+			types_id = $3,
+      power = $4,
+      accuracy = $5,
+      power_point = $6
+    WHERE id = $1;
+  `;
+
+	await updateDatabase(query, [id, name, types_id, power, accuracy, power_point], res);
+});
+
 app.put('/types', async (req, res) => {
 	const { id, name, effectiveness } = req.body;
 	if (!id) return res.status(300).send({ error: 'ID is required' });
