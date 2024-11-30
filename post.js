@@ -65,7 +65,7 @@ app.post("/pokemon/species", async (req, res) => {
 
 app.post("/pokemon/moves", async (req, res) => {
     try {
-        const movess = JSON.parse(req.query['details']);
+        const moves = JSON.parse(req.query['details']);
         const client = new Client(clientConfig);
         await client.connect();
         const result = await client.query("INSERT INTO MOVES(name,types_id,power,accuracy,power_point) VALUES ($1::text,$2::integer,$3::integer,$4::integer,$5::smallint);", [moves['move_name'], moves['type_id'], moves['power'], moves['accuracy'], moves['pp']]);
@@ -79,10 +79,25 @@ app.post("/pokemon/moves", async (req, res) => {
 
 app.post("/types", async (req, res) => {
     try {
-        const species = JSON.parse(req.query['details']);
+        const type = JSON.parse(req.query['details']);
         const client = new Client(clientConfig);
         await client.connect();
-        const result = await client.query("INSERT INTO TYPES(name) VALUES ($1::text);", [species['type_name']]);
+        const types_query = await client.query("INSERT INTO TYPES(name) VALUES ($1::text) RETURNING *;", [type['type_name']]);
+        const type_id = (types_query["rows"][0])["id"];
+
+        const type_strengths = type["strengths"];
+
+        type_strengths.forEach((id)=>{
+            const type_strength_query = client.query("INSERT INTO TYPE_EFFECTIVENESS(attacking_type_id, defending_type_id, effectiveness) VALUES($1::integer, $2::integer, 0.3);",[type_id,id]);
+        });
+
+        const type_weaknesses = type["weaknesses"];
+
+        type_weaknesses.forEach((id)=>{
+            const type_strength_query = client.query("INSERT INTO TYPE_EFFECTIVENESS(attacking_type_id, defending_type_id, effectiveness) VALUES($1::integer, $2::integer, 0.2);",[id,type_id]);
+        });
+        //REQUEST TYPE_ID:effecTIveneSS IN OBJECT FORMAT
+
         res.set("Content-Type", "application/json");
         res.send("Type added successfully!");
     } catch (ex) {
