@@ -234,4 +234,73 @@ app.get('/natures/:id', async function(req, res) {
     } catch (e) {
         res.status(500).send(e.message);
     }
+})
+
+//DELETE 
+
+// Delete a specific species by ID
+app.delete('/species/:id', async function (req, res) {
+    try {
+        const { id } = req.params;
+        const client = new Client(clientConfig);
+        await client.connect();
+        await client.query("DELETE FROM species WHERE id = $1", [id]);
+
+        res.status(200).send(`Deleted successfully`);
+    } catch (e) {
+        res.status(500).send(e.message);
+    }
+});
+
+// Delete a specific nature by ID
+app.delete('/natures/:id', async function (req, res) {
+    try {
+        const { id } = req.params;
+        const client = new Client(clientConfig);
+        await client.connect();
+        await client.query("DELETE FROM natures WHERE id = $1", [id]);
+
+        res.status(200).send(`Deleted successfully`);
+    } catch (e) {
+        res.status(500).send(e.message);
+    }
+});
+// Delete a specific type by ID
+app.delete('/types/:id', async function (req, res) {
+    try {
+        const { id } = req.params;
+        const client = new Client(clientConfig);
+        await client.connect();
+        await client.query("DELETE FROM types WHERE id = $1", [id]);
+
+        res.status(200).send(`Deleted successfully`);
+    } catch (e) {
+        res.status(500).send(e.message);
+    }
+});
+// Delete a specific move by ID
+app.delete('/moves/:id', async function (req, res) {
+    try {
+        const { id } = req.params;
+        const client = new Client(clientConfig);
+        await client.connect();
+        await client.query("DELETE FROM moves WHERE id = $1", [id]);
+
+        res.status(200).send(`Deleted successfully`);
+    } catch (e) {
+        res.status(500).send(e.message);
+    }
+});
+// Delete a specific pokemon by ID
+app.delete('/pokemon/:id', async function (req, res) {
+    try {
+        const { id } = req.params;
+        const client = new Client(clientConfig);
+        await client.connect();
+        await client.query("DELETE FROM pokemon WHERE id = $1", [id]);
+
+        res.status(200).send(`Deleted successfully`);
+    } catch (e) {
+        res.status(500).send(e.message);
+    }
 });
