@@ -319,7 +319,7 @@ app.post("/types", async (req, res) => {
         const type = req.body;
         const client = new Client(clientConfig);
         await client.connect();
-        const types_query = await client.query("INSERT INTO TYPES(name) VALUES ($1::text) RETURNING *;", [type['type_name']]);
+        const types_query = await client.query("INSERT INTO TYPES(name,color) VALUES ($1::text,$2::text) RETURNING *;", [type['type_name'],type['color']]);
         const type_id = (types_query["rows"][0])["id"];
 
         const type_strengths = type["strengths"];
