@@ -19,8 +19,8 @@ app.listen(PORT, () => {
 
 const clientConfig = {
     user: 'postgres',
-    password: 'mypacepokedexpostgresql',
-    host: 'pokedex-rds.cfqagimcm2pp.us-east-2.rds.amazonaws.com',
+    password: 'mypacepostgresql',
+    host: 'my-pace-postgresql.cb8ea6cg2ykd.us-east-2.rds.amazonaws.com',
     port: 5432,
     ssl: {
         rejectUnauthorized: false,
@@ -262,7 +262,7 @@ app.get('/natures/:id', async function (req, res) {
 
 app.post("/pokemon", async (req, res) => {
     try {
-        const pokemon = JSON.parse(req.body["details"])["pokemons"][0];
+        const pokemon = req.body["pokemons"][0];
         const stats = pokemon["stats"];
         const moves = pokemon["moves"];
         const types = pokemon["type"];
@@ -288,7 +288,7 @@ app.post("/pokemon", async (req, res) => {
 
 app.post("/pokemon/species", async (req, res) => {
     try {
-        const species = JSON.parse(req.query['details']);
+        const species = req.body;
         const client = new Client(clientConfig);
         await client.connect();
         const result = await client.query("INSERT INTO SPECIES(name) VALUES ($1::text);", [species['species_name']]);
@@ -302,7 +302,7 @@ app.post("/pokemon/species", async (req, res) => {
 
 app.post("/pokemon/moves", async (req, res) => {
     try {
-        const moves = JSON.parse(req.query['details']);
+        const moves = req.body;
         const client = new Client(clientConfig);
         await client.connect();
         const result = await client.query("INSERT INTO MOVES(name,types_id,power,accuracy,power_point) VALUES ($1::text,$2::integer,$3::integer,$4::integer,$5::smallint);", [moves['move_name'], moves['type_id'], moves['power'], moves['accuracy'], moves['pp']]);
@@ -316,7 +316,7 @@ app.post("/pokemon/moves", async (req, res) => {
 
 app.post("/types", async (req, res) => {
     try {
-        const type = JSON.parse(req.query['details']);
+        const type = req.body;
         const client = new Client(clientConfig);
         await client.connect();
         const types_query = await client.query("INSERT INTO TYPES(name) VALUES ($1::text) RETURNING *;", [type['type_name']]);
@@ -345,10 +345,10 @@ app.post("/types", async (req, res) => {
 
 app.post("/nature", async (req, res) => {
     try {
-        const species = JSON.parse(req.query['details']);
+        const species = req.body;
         const client = new Client(clientConfig);
         await client.connect();
-        const result = await client.query("INSERT INTO NATURES(name, increased_stat, decreased_stat) VALUES ($1::text,$2::text,$3::text);", [species['name'], species['increased_stat'], species['decreased_stat']]);
+        const result = await client.query("INSERT INTO NATURES(name, increased_stat, decreased_stat, description) VALUES ($1::text,$2::text,$3::text, $4::text);", [species['name'], species['increased_stat'], species['decreased_stat'], species['description']]);
         res.set("Content-Type", "application/json");
         res.send("Nature added successfully!");
     } catch (ex) {
