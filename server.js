@@ -36,8 +36,8 @@ app.get('/pokemon', async function (req, res) {
             SELECT DISTINCT
                 p.id, 
                 p.name, 
-                array_agg(DISTINCT ROW (m.id as id, m.name as move_name)) AS moves, 
-                array_agg(DISTINCT ROW (t.id as id, t.name as type_name)) AS type, 
+                array_agg(DISTINCT (m.id as id, m.name as move_name)) AS moves, 
+                array_agg(DISTINCT (t.id as id, t.name as type_name)) AS type, 
                 s.name,
                 pb.hp, 
                 pb.attack, 
@@ -63,7 +63,6 @@ app.get('/pokemon', async function (req, res) {
                 pb.speed;
         `;
         const result = await client.query(query);
-
         res.set("Content-Type", "application/json");
         res.send(result.rows);
     } catch (ex) {
@@ -143,27 +142,43 @@ app.get('/species/:id', async function(req,res){
 })
 
 // List of all moves in pokemon
-app.get('/moves', async function(req,res){
+app.get('/moves', async function(req, res) {
     try {
         const client = new Client(clientConfig);
         await client.connect();
-        const result = await client.query("SELECT array_agg(ROW(id, name)) AS moves FROM moves");
+        const result = await client.query(
+            "SELECT id, name FROM moves"
+        );
+
+        const moves = result.rows.map(row => ({
+            id: row.id,
+            name: row.name, 
+        }));
+
         res.set("Content-Type", "application/json");
-        res.send(result.rows);
+        res.send(moves);
     }
-    catch(e){
+    catch (e) {
         res.status(500).send(e.message);
     }
-})
+});
 // List of all details of that specific move ID
 app.get('/moves/:id', async function(req,res){
     try {
         const {id} = req.params;
         const client = new Client(clientConfig);
         await client.connect();
-        const result = await client.query("SELECT array_agg(ROW(id, name)) AS moves FROM moves WHERE id = $1", [id]);
+        const result = await client.query("SELECT m.id, m.name AS move_name, t.name AS type_name, m.power, m.accuracy, m.power_point FROM moves m JOIN types t ON m.types_Id = t.id WHERE id = $1", [id]);
+        const move = result.rows.map(row => ({
+            id: row.id,
+            moveName: row.move_name, 
+            typeName: row.type_name,  
+            power: row.power,
+            accuracy: row.accuracy,
+            powerPoint: row.power_point
+        }));
         res.set("Content-Type", "application/json");
-        res.send(result.rows);
+        res.send(move);
     }
     catch(e){
         res.status(500).send(e.Message);
@@ -195,9 +210,13 @@ app.get('/types', async function(req,res){
     try {
         const client = new Client(clientConfig);
         await client.connect();
-        const result = await client.query("SELECT array_agg(ROW(id, name)) AS types FROM TYPES");
+        const result = await client.query("SELECT id, name FROM TYPES");
+        const types = result.rows.map(row => ({
+            id: row.id,
+            name: row.name, 
+        }));
         res.set("Content-Type", "application/json");
-        res.send(result.rows);
+        res.send(types);
     }
     catch(e){
         res.status(500).send(e.message);
@@ -217,8 +236,15 @@ app.get('/types/:id', async function(req, res) {
                 OR t.id = te.defending_type_id
             WHERE t.id = $1
         `, [id]);
+
+        const typeDetails = result.rows.map(row => ({
+            typeName: row.type_name,
+            attackingTypeId: row.attacking_type_id,
+            defendingTypeId: row.defending_type_id,
+            effectiveness: row.effectiveness
+        }));
         res.set("Content-Type", "application/json");
-        res.send(result.rows);
+        res.send(typeDetails);
     } catch (e) {
         res.status(500).send(e.message);
     }
