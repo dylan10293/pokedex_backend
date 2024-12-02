@@ -28,91 +28,99 @@ const clientConfig = {
 };
 
 // List of all pokemons with all details
-app.get('/pokemon', async function (req, res) {
+app.get("/pokemon", async function (req, res) {
     try {
-        const client = new Client(clientConfig);
-        await client.connect();
-        const query = `
-            SELECT DISTINCT
-                p.id, 
-                p.name, 
-                array_agg(DISTINCT (m.id as id, m.name as move_name)) AS moves, 
-                array_agg(DISTINCT (t.id as id, t.name as type_name)) AS type, 
-                s.name,
-                pb.hp, 
-                pb.attack, 
-                pb.defense, 
-                pb.special_attack, 
-                pb.special_defense, 
-                pb.speed 
-            FROM (pokemon p 
-            JOIN pokemon_moves pm ON p.id = pm.pokemon_id 
-            JOIN moves m ON pm.move_id = m.id 
-            JOIN pokemon_types pt ON p.id = pt.pokemon_id 
-            JOIN types t ON t.id = pt.type_Id 
-            JOIN pokemon_base_stats pb ON p.id = pb.pokemon_id
-            JOIN species s ON p.species_id = s.id) 
-            GROUP BY 
-                p.id,
-                s.name,
-                pb.hp, 
-                pb.attack, 
-                pb.defense, 
-                pb.special_attack, 
-                pb.special_defense, 
-                pb.speed;
-        `;
-        const result = await client.query(query);
-        res.set("Content-Type", "application/json");
-        res.send(result.rows);
+      const client = new Client(clientConfig);
+      await client.connect();
+      const query = `
+              SELECT DISTINCT
+                  p.id,
+                  p.name,
+                  s.name AS species,
+                  array_agg(DISTINCT jsonb_build_object('id', m.id, 'name', m.name)) AS moves, 
+                  array_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name)) AS type,
+                  pb.hp, 
+                  pb.attack, 
+                  pb.defense, 
+                  pb.special_attack, 
+                  pb.special_defense, 
+                  pb.speed 
+              FROM (pokemon p
+              JOIN pokemon_moves pm ON p.id = pm.pokemon_id 
+              JOIN moves m ON pm.move_id = m.id 
+              JOIN pokemon_types pt ON p.id = pt.pokemon_id 
+              JOIN types t ON t.id = pt.type_Id 
+              JOIN pokemon_base_stats pb ON p.id = pb.pokemon_id
+              JOIN species s ON s.id = p.species_id)
+              GROUP BY 
+                  p.id,
+                  s.name,
+                  p.name,
+                  pb.hp, 
+                  pb.attack, 
+                  pb.defense, 
+                  pb.special_attack, 
+                  pb.special_defense, 
+                  pb.speed
+              ORDER BY p.id;
+          `;
+  
+      const result = await client.query(query);
+      res.set("Content-Type", "application/json");
+      res.send(result.rows);
     } catch (ex) {
-        res.status(500).send("Internal Error - No Pokemon Found");
+      console.log(ex);
+      res.status(500).send("Internal Error - No Pokemon Found");
     }
-});
-
-// List of all details of that specific pokemon ID
-app.get('/pokemon/:id', async function (req, res) {
+  });
+  
+  // List of all details of that specific pokemon ID
+  app.get("/pokemon/:id", async function (req, res) {
     try {
-        const { id } = req.params; 
-        const client = new Client(clientConfig);
-        await client.connect(); 
-
-        const query = `
-            SELECT 
-                p.id, 
-                p.name, 
-                array_agg(DISTINCT ROW (m.id as id, m.name as move_name)) AS moves, 
-                array_agg(DISTINCT ROW (t.id as id, t.name as type_name)) AS type, 
-                s.name,
-                pb.hp, 
-                pb.attack, 
-                pb.defense, 
-                pb.special_attack, 
-                pb.special_defense, 
-                pb.speed 
-            FROM (pokemon p 
-            JOIN pokemon_moves pm ON p.id = pm.pokemon_id 
-            JOIN moves m ON pm.move_id = m.id 
-            JOIN pokemon_types pt ON p.id = pt.pokemon_id 
-            JOIN types t ON t.id = pt.type_Id 
-            JOIN pokemon_base_stats pb ON p.id = pb.pokemon_id
-            JOIN species s ON p.species_id = s.id) 
-            WHERE p.id = $1 GROUP BY p.id, 
-                p.name,
-                s.name, 
-                pb.hp, 
-                pb.attack, 
-                pb.defense, 
-                pb.special_attack, 
-                pb.special_defense, 
-                pb.speed; 
-        `;
-        const result = await client.query(query, [id]);
-        res.json(result.rows);
+      const { id } = req.params;
+      const client = new Client(clientConfig);
+      await client.connect();
+  
+      const query = `
+              SELECT DISTINCT
+                  p.id,
+                  p.name,
+                  s.name AS species,
+                  array_agg(DISTINCT jsonb_build_object('id', m.id, 'name', m.name)) AS moves, 
+                  array_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name)) AS type,
+                  pb.hp, 
+                  pb.attack, 
+                  pb.defense, 
+                  pb.special_attack, 
+                  pb.special_defense, 
+                  pb.speed 
+              FROM (pokemon p
+              JOIN pokemon_moves pm ON p.id = pm.pokemon_id 
+              JOIN moves m ON pm.move_id = m.id 
+              JOIN pokemon_types pt ON p.id = pt.pokemon_id 
+              JOIN types t ON t.id = pt.type_Id 
+              JOIN pokemon_base_stats pb ON p.id = pb.pokemon_id
+              JOIN species s ON s.id = p.species_id)
+              WHERE p.id = $1
+              GROUP BY 
+                  p.id,
+                  s.name,
+                  p.name,
+                  pb.hp, 
+                  pb.attack, 
+                  pb.defense, 
+                  pb.special_attack, 
+                  pb.special_defense, 
+                  pb.speed
+              ORDER BY p.id;
+          `;
+      const result = await client.query(query, [id]);
+      res.json(result.rows);
     } catch (e) {
-        res.status(500).send("Internal Server Error");
+      res.status(500).send("Internal Server Error");
     }
-})
+  });
+
 // List of all the species and the species ID
 app.get('/species', async function(req,res){
     try {
@@ -126,7 +134,7 @@ app.get('/species', async function(req,res){
     } 
     })
 
-    // List of all details of that specific species ID
+// List of all details of that specific species ID
 app.get('/species/:id', async function(req,res){
     try {
         const {id} = req.params;
@@ -142,48 +150,49 @@ app.get('/species/:id', async function(req,res){
 })
 
 // List of all moves in pokemon
-app.get('/moves', async function(req, res) {
+app.get("/moves", async function (req, res) {
     try {
-        const client = new Client(clientConfig);
-        await client.connect();
-        const result = await client.query(
-            "SELECT id, name FROM moves"
-        );
-
-        const moves = result.rows.map(row => ({
-            id: row.id,
-            name: row.name, 
-        }));
-
-        res.set("Content-Type", "application/json");
-        res.send(moves);
+      const client = new Client(clientConfig);
+      await client.connect();
+      const result = await client.query("SELECT id, name FROM moves");
+  
+      const moves = result.rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+      }));
+  
+      res.set("Content-Type", "application/json");
+      res.send(moves);
+    } catch (e) {
+      res.status(500).send(e.message);
     }
-    catch (e) {
-        res.status(500).send(e.message);
-    }
-});
-// List of all details of that specific move ID
-app.get('/moves/:id', async function(req,res){
+  });
+
+  // List of all details of that specific move ID
+  app.get("/moves/:id", async function (req, res) {
     try {
-        const {id} = req.params;
-        const client = new Client(clientConfig);
-        await client.connect();
-        const result = await client.query("SELECT m.id, m.name AS move_name, t.name AS type_name, m.power, m.accuracy, m.power_point FROM moves m JOIN types t ON m.types_Id = t.id WHERE id = $1", [id]);
-        const move = result.rows.map(row => ({
-            id: row.id,
-            moveName: row.move_name, 
-            typeName: row.type_name,  
-            power: row.power,
-            accuracy: row.accuracy,
-            powerPoint: row.power_point
-        }));
-        res.set("Content-Type", "application/json");
-        res.send(move);
+      const { id } = req.params;
+      const client = new Client(clientConfig);
+      await client.connect();
+      const result = await client.query(
+        "SELECT m.id, m.name AS move_name, t.name AS type_name, m.power, m.accuracy, m.power_point FROM moves m JOIN types t ON m.types_Id = t.id WHERE m.id = $1",
+        [id]
+      );
+      const move = result.rows.map((row) => ({
+        id: row.id,
+        moveName: row.move_name,
+        typeName: row.type_name,
+        power: row.power,
+        accuracy: row.accuracy,
+        powerPoint: row.power_point,
+      }));
+      res.set("Content-Type", "application/json");
+      res.send(move);
+    } catch (e) {
+      console.log(e);
+      res.status(500).send(e.Message);
     }
-    catch(e){
-        res.status(500).send(e.Message);
-    }
-})
+  });
 
 //List of all pokemon name, ID, and image(maybe) of that specific TYPE
 app.get('/pokemon/types/:type', async function(req, res) {
@@ -206,49 +215,52 @@ app.get('/pokemon/types/:type', async function(req, res) {
 })
 
 // List of all types in pokemon
-app.get('/types', async function(req,res){
-    try {
-        const client = new Client(clientConfig);
-        await client.connect();
-        const result = await client.query("SELECT id, name FROM TYPES");
-        const types = result.rows.map(row => ({
-            id: row.id,
-            name: row.name, 
-        }));
-        res.set("Content-Type", "application/json");
-        res.send(types);
-    }
-    catch(e){
-        res.status(500).send(e.message);
-    }
-})
+app.get("/types", async function (req, res) {
+  try {
+    const client = new Client(clientConfig);
+    await client.connect();
+    const result = await client.query("SELECT id, name FROM TYPES");
+    const types = result.rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+    }));
+    res.set("Content-Type", "application/json");
+    res.send(types);
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
 // List of all details of that specific type ID
-app.get('/types/:id', async function(req, res) {
-    try {
-        const { id } = req.params;
-        const client = new Client(clientConfig);
-        await client.connect();
-        const result = await client.query(`
+app.get("/types/:id", async function (req, res) {
+  try {
+    const { id } = req.params;
+    const client = new Client(clientConfig);
+    await client.connect();
+    const result = await client.query(
+      `
             SELECT t.name, te.attacking_type_id, te.defending_type_id, te.effectiveness
             FROM types t
             JOIN type_effectiveness te
                 ON t.id = te.attacking_type_id
                 OR t.id = te.defending_type_id
             WHERE t.id = $1
-        `, [id]);
+        `,
+      [id]
+    );
 
-        const typeDetails = result.rows.map(row => ({
-            typeName: row.type_name,
-            attackingTypeId: row.attacking_type_id,
-            defendingTypeId: row.defending_type_id,
-            effectiveness: row.effectiveness
-        }));
-        res.set("Content-Type", "application/json");
-        res.send(typeDetails);
-    } catch (e) {
-        res.status(500).send(e.message);
-    }
-})
+    const typeDetails = result.rows.map((row) => ({
+      typeName: row.type_name,
+      attackingTypeId: row.attacking_type_id,
+      defendingTypeId: row.defending_type_id,
+      effectiveness: row.effectiveness,
+    }));
+    res.set("Content-Type", "application/json");
+    res.send(typeDetails);
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
 // List of all natures in pokemon
 app.get('/natures', async function(req,res){
     try {
