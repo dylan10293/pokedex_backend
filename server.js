@@ -38,7 +38,7 @@ app.get("/pokemon", async function (req, res) {
                   p.name,
                   s.name AS species,
                   array_agg(DISTINCT jsonb_build_object('id', m.id, 'name', m.name)) AS moves, 
-                  array_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name)) AS type,
+                  array_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name, 'color', t.color)) AS type,
                   pb.hp, 
                   pb.attack, 
                   pb.defense, 
@@ -87,7 +87,7 @@ app.get("/pokemon", async function (req, res) {
                   p.name,
                   s.name AS species,
                   array_agg(DISTINCT jsonb_build_object('id', m.id, 'name', m.name)) AS moves, 
-                  array_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name)) AS type,
+                  array_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name, 'color, t.color)) AS type,
                   pb.hp, 
                   pb.attack, 
                   pb.defense, 
@@ -219,10 +219,11 @@ app.get("/types", async function (req, res) {
   try {
     const client = new Client(clientConfig);
     await client.connect();
-    const result = await client.query("SELECT id, name FROM TYPES");
+    const result = await client.query("SELECT id, name, color FROM TYPES");
     const types = result.rows.map((row) => ({
       id: row.id,
       name: row.name,
+      color: row.color,
     }));
     res.set("Content-Type", "application/json");
     res.send(types);
