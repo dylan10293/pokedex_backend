@@ -36,8 +36,9 @@ app.get('/pokemon', async function (req, res) {
             SELECT DISTINCT
                 p.id, 
                 p.name, 
-                array_agg(DISTINCT m.name) AS moves, 
-                array_agg(DISTINCT t.name) AS type, 
+                array_agg(DISTINCT ROW (m.id as id, m.name as move_name)) AS moves, 
+                array_agg(DISTINCT ROW (t.id as id, t.name as type_name)) AS type, 
+                s.name,
                 pb.hp, 
                 pb.attack, 
                 pb.defense, 
@@ -49,7 +50,12 @@ app.get('/pokemon', async function (req, res) {
             JOIN moves m ON pm.move_id = m.id 
             JOIN pokemon_types pt ON p.id = pt.pokemon_id 
             JOIN types t ON t.id = pt.type_Id 
-            JOIN pokemon_base_stats pb ON p.id = pb.pokemon_id) GROUP BY p.id, pb.hp, 
+            JOIN pokemon_base_stats pb ON p.id = pb.pokemon_id
+            JOIN species s ON p.species_id = s.id) 
+            GROUP BY 
+                p.id,
+                s.name,
+                pb.hp, 
                 pb.attack, 
                 pb.defense, 
                 pb.special_attack, 
@@ -69,7 +75,6 @@ app.get('/pokemon', async function (req, res) {
 app.get('/pokemon/:id', async function (req, res) {
     try {
         const { id } = req.params; 
-
         const client = new Client(clientConfig);
         await client.connect(); 
 
@@ -77,8 +82,9 @@ app.get('/pokemon/:id', async function (req, res) {
             SELECT 
                 p.id, 
                 p.name, 
-                array_agg(DISTINCT m.name) AS moves, 
-                array_agg(DISTINCT t.name) AS type,  
+                array_agg(DISTINCT ROW (m.id as id, m.name as move_name)) AS moves, 
+                array_agg(DISTINCT ROW (t.id as id, t.name as type_name)) AS type, 
+                s.name,
                 pb.hp, 
                 pb.attack, 
                 pb.defense, 
@@ -90,9 +96,11 @@ app.get('/pokemon/:id', async function (req, res) {
             JOIN moves m ON pm.move_id = m.id 
             JOIN pokemon_types pt ON p.id = pt.pokemon_id 
             JOIN types t ON t.id = pt.type_Id 
-            JOIN pokemon_base_stats pb ON p.id = pb.pokemon_id) 
+            JOIN pokemon_base_stats pb ON p.id = pb.pokemon_id
+            JOIN species s ON p.species_id = s.id) 
             WHERE p.id = $1 GROUP BY p.id, 
-                p.name, 
+                p.name,
+                s.name, 
                 pb.hp, 
                 pb.attack, 
                 pb.defense, 
@@ -105,7 +113,7 @@ app.get('/pokemon/:id', async function (req, res) {
     } catch (e) {
         res.status(500).send("Internal Server Error");
     }
-});
+})
 // List of all the species and the species ID
 app.get('/species', async function(req,res){
     try {
@@ -117,7 +125,7 @@ app.get('/species', async function(req,res){
     } catch (e) {
         res.status(500).send(e.message);
     } 
-});
+    })
 
     // List of all details of that specific species ID
 app.get('/species/:id', async function(req,res){
@@ -132,35 +140,35 @@ app.get('/species/:id', async function(req,res){
     catch(e){
         res.status(500).send(e.message);
     }
-});
+})
 
 // List of all moves in pokemon
 app.get('/moves', async function(req,res){
     try {
         const client = new Client(clientConfig);
         await client.connect();
-        const result = await client.query("SELECT id,name FROM moves");
+        const result = await client.query("SELECT array_agg(ROW(id, name)) AS moves FROM moves");
         res.set("Content-Type", "application/json");
         res.send(result.rows);
     }
     catch(e){
         res.status(500).send(e.message);
     }
-});
+})
 // List of all details of that specific move ID
 app.get('/moves/:id', async function(req,res){
     try {
         const {id} = req.params;
         const client = new Client(clientConfig);
         await client.connect();
-        const result = await client.query("SELECT id,name FROM moves WHERE id = $1", [id]);
+        const result = await client.query("SELECT array_agg(ROW(id, name)) AS moves FROM moves WHERE id = $1", [id]);
         res.set("Content-Type", "application/json");
         res.send(result.rows);
     }
     catch(e){
-        res.status(500).send(e.message);
+        res.status(500).send(e.Message);
     }
-});
+})
 
 //List of all pokemon name, ID, and image(maybe) of that specific TYPE
 app.get('/pokemon/types/:type', async function(req, res) {
@@ -180,21 +188,21 @@ app.get('/pokemon/types/:type', async function(req, res) {
     } catch (e) {
         res.status(500).send(e.message);
     }
-});
+})
 
 // List of all types in pokemon
 app.get('/types', async function(req,res){
     try {
         const client = new Client(clientConfig);
         await client.connect();
-        const result = await client.query("SELECT id,name FROM TYPES");
+        const result = await client.query("SELECT array_agg(ROW(id, name)) AS types FROM TYPES");
         res.set("Content-Type", "application/json");
         res.send(result.rows);
     }
     catch(e){
         res.status(500).send(e.message);
     }
-});
+})
 // List of all details of that specific type ID
 app.get('/types/:id', async function(req, res) {
     try {
@@ -214,7 +222,7 @@ app.get('/types/:id', async function(req, res) {
     } catch (e) {
         res.status(500).send(e.message);
     }
-});
+})
 // List of all natures in pokemon
 app.get('/natures', async function(req,res){
     try {
@@ -227,7 +235,7 @@ app.get('/natures', async function(req,res){
     catch(e){
         res.status(500).send(e.message);
     }
-});
+})
 
 // List of all details of that specific nature ID
 app.get('/natures/:id', async function(req, res) {
@@ -241,7 +249,7 @@ app.get('/natures/:id', async function(req, res) {
     } catch (e) {
         res.status(500).send(e.message);
     }
-});
+})
 
 app.post("/pokemon", async (req, res) => {
     try {
@@ -384,9 +392,6 @@ app.delete('/pokemon/:id', async function (req, res) {
         const { id } = req.params;
         const client = new Client(clientConfig);
         await client.connect();
-        await client.query("DELETE FROM pokemon_types WHERE pokemon_id=$1",[id])
-        await client.query("DELETE FROM pokemon_moves WHERE pokemon_id=$1",[id])
-        await client.query("DELETE FROM pokemon_base_stats WHERE pokemon_id=$1",[id])
         await client.query("DELETE FROM pokemon WHERE id = $1", [id]);
 
         res.status(200).send(`Deleted successfully`);
