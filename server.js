@@ -94,8 +94,7 @@ app.get("/pokemon", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (ex) {
-    console.log(ex);
-    res.status(500).send("Internal Error - No Pokemon Found");
+    res.status(500).send({error:e});
   }
 });
 
@@ -145,7 +144,7 @@ app.get("/pokemon/:id", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send("Internal Server Error");
+    res.status(500).send({error:e});
   }
 });
 
@@ -161,7 +160,7 @@ app.get("/species", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send(e.message);
+    res.status(500).send({error:e});
   }
 });
 
@@ -181,7 +180,7 @@ app.get("/species/:id", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send(e.message);
+    res.status(500).send({error:e});
   }
 });
 
@@ -203,7 +202,7 @@ app.get("/moves", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send(e.message);
+    res.status(500).send({error:e});
   } 
 });
 
@@ -232,7 +231,7 @@ app.get("/moves/:id", async function (req, res) {
 
   } catch (e) {
     console.log(e);
-    res.status(500).send(e.Message);
+    res.status(500).send({error:e});
   }
 });
 
@@ -258,7 +257,7 @@ app.get("/pokemon/types/:type", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send(e.message);
+    res.status(500).send({error:e});
   }
 });
 
@@ -279,7 +278,7 @@ app.get("/types", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send(e.message);
+    res.status(500).send({error:e});
   }
 });
 // List of all details of that specific type ID
@@ -312,7 +311,7 @@ app.get("/types/:id", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send(e.message);
+    res.status(500).send({error:e});
   }
 });
 
@@ -328,7 +327,7 @@ app.get("/natures", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send(e.message);
+    res.status(500).send({error:e});
   }
 });
 
@@ -348,7 +347,7 @@ app.get("/natures/:id", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send(e.message);
+    res.status(500).send({error:e});
   }
 });
 
@@ -407,13 +406,13 @@ app.post("/pokemon", async (req, res) => {
     });
 
     res.set("Content-Type", "application/json");
-    res.send("Pokemon added successfully!");
+    res.send({message:"Pokemon added successfully!"});
 
     await client.end();     //Close connection to database
 
   } catch (ex) {
 
-    res.status(300).send("RROR - Details provided in incorrect format");
+    res.status(300).send({error:"ERROR - Details provided in incorrect format"});
 
   } 
 });
@@ -434,13 +433,13 @@ app.post("/pokemon/species", async (req, res) => {
     );
 
     res.set("Content-Type", "application/json");
-    res.send("Species added successfully!");
+    res.send({message:"Species added successfully!"});
 
     await client.end();     //Close connection to database
 
   } catch (ex) {
 
-    res.status(500).send("ERROR - Details provided in incorrect format");
+    res.status(300).send({error:"ERROR - Details provided in incorrect format"});
 
   }
 });
@@ -467,13 +466,13 @@ app.post("/pokemon/moves", async (req, res) => {
     );
 
     res.set("Content-Type", "application/json");
-    res.send("Move added successfully!");
+    res.send({message:"Move added successfully!"});
 
     await client.end();     //Close connection to database
 
   } catch (ex) {
 
-    res.status(500).send("RROR - Details provided in incorrect format");
+    res.status(300).send({error:"ERROR - Details provided in incorrect format"});
 
   }
 });
@@ -513,13 +512,13 @@ app.post("/types", async (req, res) => {
     });
 
     res.set("Content-Type", "application/json");
-    res.send("Type added successfully!");
+    res.send({message:"Type added successfully!"});
 
     await client.end();     //Close connection to database
 
   } catch (ex) {
 
-    res.status(500).send("RROR - Details provided in incorrect format");
+    res.status(300).send({error:"ERROR - Details provided in incorrect format"});
 
   }
 });
@@ -543,13 +542,13 @@ app.post("/nature", async (req, res) => {
     );
 
     res.set("Content-Type", "application/json");
-    res.send("Nature added successfully!");
+    res.send({message:"Nature added successfully!"});
 
     await client.end();     //Close connection to database
 
   } catch (ex) {
 
-    res.status(500).send("ERROR - Details provided in incorrect format");
+    res.status(300).send({error:"ERROR - Details provided in incorrect format"});
 
   } 
 });
@@ -708,7 +707,7 @@ app.delete("/species/:id", async function (req, res) {
     res.status(200).send(`Deleted successfully`);
 
     await client.end();     //Close connection to database
-    
+
   } catch (e) {
     res.status(500).send(e.message);
   }
