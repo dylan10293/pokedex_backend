@@ -392,6 +392,7 @@ app.post("/pokemon", async (req, res) => {
   }
 });
 
+//Post and add a new species
 app.post("/pokemon/species", async (req, res) => {
   try {
 
@@ -407,11 +408,11 @@ app.post("/pokemon/species", async (req, res) => {
     );
 
     res.set("Content-Type", "application/json");
-    res.send("Specie added successfully!");
+    res.send("Species added successfully!");
 
   } catch (ex) {
 
-    res.status(500).send("RROR - Details provided in incorrect format");
+    res.status(500).send("ERROR - Details provided in incorrect format");
 
   } finally {
 
@@ -420,6 +421,7 @@ app.post("/pokemon/species", async (req, res) => {
   }
 });
 
+//Post and add a new move
 app.post("/pokemon/moves", async (req, res) => {
   try {
 
@@ -454,6 +456,7 @@ app.post("/pokemon/moves", async (req, res) => {
   }
 });
 
+//Post and add a new type
 app.post("/types", async (req, res) => {
   try {
     const type = req.body;
@@ -501,6 +504,7 @@ app.post("/types", async (req, res) => {
   }
 });
 
+//Post and add a new nature
 app.post("/nature", async (req, res) => {
   try {
     const species = req.body;
