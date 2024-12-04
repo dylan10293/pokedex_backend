@@ -1,13 +1,13 @@
 "use strict";;
 const { Client } = require("pg");
 const express = require("express");
-const multer = require('multer'); 
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3'); 
-const fs = require('fs'); 
+const multer = require('multer');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
-const s3 = new S3Client({ region: process.env.AWS_REGION }); 
+const s3 = new S3Client({ region: process.env.AWS_REGION });
 const upload = multer({ dest: 'uploads/' });
 
 const app = express();
@@ -34,23 +34,18 @@ const clientConfig = {
 };
 
 
-const client = new Client(clientConfig);
-client
-  .connect()
-  .then(() => {
-    console.log("Connected to the database");
-  })
-  .catch((err) => {
-    console.error("Database connection error", err);
-  });
 
 const updateDatabase = async (query, values, res) => {
   try {
+    const client = new Client(clientConfig);
+    await client
+      .connect()
     await client.query(query, values);
     res.status(200).send({ message: "Success" });
+    await client.end();
   } catch (error) {
     console.error(error);
-    res.status(300).send({ error: "Invalid input" });
+    res.status(300).send({ error: "Failed to execute query" });
   }
 };
 
@@ -595,6 +590,9 @@ app.put("/pokemon", async (req, res) => {
   `;
 
   try {
+    const client = new Client(clientConfig);
+    await client.connect()
+
     const roundedHeight = height ? Math.round(height) : null;
     const roundedWeight = weight ? Math.round(weight) : null;
 
@@ -643,8 +641,8 @@ app.put("/pokemon", async (req, res) => {
     }
 
     res.status(200).send({ message: "Success" });
+    await client.end();
   } catch (error) {
-    console.error(error);
     res.status(300).send({ error: "Failed to update Pokémon" });
   }
 });
@@ -792,42 +790,42 @@ app.delete("/pokemon/:id", async function (req, res) {
   }
 });
 
-app.post('/upload', upload.single('image'), async (req, res) => { 
+app.post('/upload', upload.single('image'), async (req, res) => {
 
-    const file = req.file; 
+  const file = req.file;
 
-    //if no file is received in request
-    if (!file) { 
+  //if no file is received in request
+  if (!file) {
 
-        return res.status(400).send('No file uploaded.'); 
+    return res.status(400).send('No file uploaded.');
 
-    } 
+  }
 
-    //read data of file
-    const fileStream = fs.createReadStream(file.path); 
+  //read data of file
+  const fileStream = fs.createReadStream(file.path);
 
-    //initialization of base parameters for upload request to be sent to S3
-    const uploadParams = { 
+  //initialization of base parameters for upload request to be sent to S3
+  const uploadParams = {
 
-        Bucket: process.env.AWS_BUCKET_NAME, 
-        Key: `${file.originalname}`, 
-        Body: fileStream, ContentType: file.mimetype 
-    }; 
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: `${file.originalname}`,
+    Body: fileStream, ContentType: file.mimetype
+  };
 
-    //upload image in S3 bucket
-    try { 
+  //upload image in S3 bucket
+  try {
 
-        await s3.send(new PutObjectCommand(uploadParams)); 
+    await s3.send(new PutObjectCommand(uploadParams));
 
-        fs.unlinkSync(file.path); // Delete file from local server after upload 
+    fs.unlinkSync(file.path); // Delete file from local server after upload 
 
-        res.set("Content-Type", "application/json");
-        res.send('File uploaded successfully to AWS S3!');
+    res.set("Content-Type", "application/json");
+    res.send('File uploaded successfully to AWS S3!');
 
-    } catch (err) { 
+  } catch (err) {
 
-        console.error('Error uploading file:', err); 
-        res.status(500).send('Error uploading file'); 
+    console.error('Error uploading file:', err);
+    res.status(500).send('Error uploading file');
 
-     } 
+  }
 });
