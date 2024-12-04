@@ -14,8 +14,8 @@ This Pokémon API allows users to interact with a PostgreSQL database containing
 1. **Clone the repository**:
 
    ```bash
-   git clone <repository_url>
-   cd <repository_name>
+   git clone https://github.com/clivethe14/pokedex_backend.git
+   cd pokedex_backend
    ```
 
 2. **Install dependencies**:
