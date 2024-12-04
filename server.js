@@ -32,15 +32,15 @@ const clientConfig = {
 };
 
 
-// const client = new Client(clientConfig);
-// client
-//   .connect()
-//   .then(() => {
-//     console.log("Connected to the database");
-//   })
-//   .catch((err) => {
-//     console.error("Database connection error", err);
-//   });
+const client = new Client(clientConfig);
+client
+  .connect()
+  .then(() => {
+    console.log("Connected to the database");
+  })
+  .catch((err) => {
+    console.error("Database connection error", err);
+  });
 
 const updateDatabase = async (query, values, res) => {
   try {
