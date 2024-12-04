@@ -22,13 +22,15 @@ app.listen(PORT, () => {
 });
 
 const clientConfig = {
-  user: "postgres",
-  password: "mypacepostgresql",
-  host: "my-pace-postgresql.cb8ea6cg2ykd.us-east-2.rds.amazonaws.com",
+
+  user: process.env.PG_USER,
+  password: process.env.PG_PASSWORD,
+  host: process.env.PG_HOST,
   port: 5432,
   ssl: {
     rejectUnauthorized: false,
   },
+
 };
 
 
@@ -743,23 +745,41 @@ app.delete("/pokemon/:id", async function (req, res) {
 });
 
 app.post('/upload', upload.single('image'), async (req, res) => { 
+
     const file = req.file; 
+
+    //if no file is received in request
     if (!file) { 
+
         return res.status(400).send('No file uploaded.'); 
+
     } 
+
+    //read data of file
     const fileStream = fs.createReadStream(file.path); 
+
+    //initialization of base parameters for upload request to be sent to S3
     const uploadParams = { 
+
         Bucket: process.env.AWS_BUCKET_NAME, 
         Key: `${file.originalname}`, 
-        Body: fileStream, ContentType: file.mimetype }; 
-        try { 
-            await s3.send(new PutObjectCommand(uploadParams)); 
-            fs.unlinkSync(file.path); // Delete file from local server after upload 
+        Body: fileStream, ContentType: file.mimetype 
+    }; 
 
-            res.set("Content-Type", "application/json");
-            res.send('File uploaded successfully to AWS S3!'); 
-        } catch (err) { 
-            console.error('Error uploading file:', err); 
-            res.status(500).send('Error uploading file'); 
-        } 
-    });
+    //upload image in S3 bucket
+    try { 
+
+        await s3.send(new PutObjectCommand(uploadParams)); 
+
+        fs.unlinkSync(file.path); // Delete file from local server after upload 
+
+        res.set("Content-Type", "application/json");
+        res.send('File uploaded successfully to AWS S3!');
+
+    } catch (err) { 
+
+        console.error('Error uploading file:', err); 
+        res.status(500).send('Error uploading file'); 
+
+     } 
+});
