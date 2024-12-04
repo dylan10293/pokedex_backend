@@ -1,10 +1,14 @@
-"use strict";
-
+"use strict";;
 const { Client } = require("pg");
 const express = require("express");
-// const multer = require('multer');
-// const AWS = require('aws-sdk');
-// const fs = require('fs');
+const multer = require('multer'); 
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3'); 
+const fs = require('fs'); 
+const path = require('path');
+require('dotenv').config();
+
+const s3 = new S3Client({ region: process.env.AWS_REGION }); 
+const upload = multer({ dest: 'uploads/' });
 
 const app = express();
 app.use(express.static("public"));
@@ -27,15 +31,16 @@ const clientConfig = {
   },
 };
 
-const client = new Client(clientConfig);
-client
-  .connect()
-  .then(() => {
-    console.log("Connected to the database");
-  })
-  .catch((err) => {
-    console.error("Database connection error", err);
-  });
+
+// const client = new Client(clientConfig);
+// client
+//   .connect()
+//   .then(() => {
+//     console.log("Connected to the database");
+//   })
+//   .catch((err) => {
+//     console.error("Database connection error", err);
+//   });
 
 const updateDatabase = async (query, values, res) => {
   try {
@@ -679,3 +684,24 @@ app.delete("/pokemon/:id", async function (req, res) {
     res.status(500).send(e.message);
   }
 });
+
+app.post('/upload', upload.single('image'), async (req, res) => { 
+    const file = req.file; 
+    if (!file) { 
+        return res.status(400).send('No file uploaded.'); 
+    } 
+    const fileStream = fs.createReadStream(file.path); 
+    const uploadParams = { 
+        Bucket: process.env.AWS_BUCKET_NAME, 
+        Key: `${file.originalname}`, 
+        Body: fileStream, ContentType: file.mimetype }; 
+        try { 
+            await s3.send(new PutObjectCommand(uploadParams)); 
+            fs.unlinkSync(file.path); 
+            // Delete file from local server after upload 
+            res.send('File uploaded successfully to AWS S3!'); 
+        } catch (err) { 
+            console.error('Error uploading file:', err); 
+            res.status(500).send('Error uploading file'); 
+        } 
+    });
