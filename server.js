@@ -98,6 +98,10 @@ app.get("/pokemon", async function (req, res) {
   } catch (ex) {
     console.log(ex);
     res.status(500).send("Internal Error - No Pokemon Found");
+  } finally {
+
+    await client.end(); //Close connection to database
+
   }
 });
 
@@ -145,6 +149,10 @@ app.get("/pokemon/:id", async function (req, res) {
     res.json(result.rows);
   } catch (e) {
     res.status(500).send("Internal Server Error");
+  } finally {
+
+    await client.end(); //Close connection to database
+
   }
 });
 
@@ -158,6 +166,10 @@ app.get("/species", async function (req, res) {
     res.send(result.rows);
   } catch (e) {
     res.status(500).send(e.message);
+  } finally {
+
+    await client.end(); //Close connection to database
+
   }
 });
 
@@ -175,6 +187,10 @@ app.get("/species/:id", async function (req, res) {
     res.send(result.rows);
   } catch (e) {
     res.status(500).send(e.message);
+  } finally {
+
+    await client.end(); //Close connection to database
+
   }
 });
 
@@ -194,6 +210,10 @@ app.get("/moves", async function (req, res) {
     res.send(moves);
   } catch (e) {
     res.status(500).send(e.message);
+  } finally {
+
+    await client.end(); //Close connection to database
+
   }
 });
 
@@ -220,6 +240,10 @@ app.get("/moves/:id", async function (req, res) {
   } catch (e) {
     console.log(e);
     res.status(500).send(e.Message);
+  } finally {
+
+    await client.end(); //Close connection to database
+
   }
 });
 
@@ -243,6 +267,10 @@ app.get("/pokemon/types/:type", async function (req, res) {
     res.send(result.rows);
   } catch (e) {
     res.status(500).send(e.message);
+  } finally {
+
+    await client.end(); //Close connection to database
+
   }
 });
 
@@ -261,6 +289,10 @@ app.get("/types", async function (req, res) {
     res.send(types);
   } catch (e) {
     res.status(500).send(e.message);
+  } finally {
+
+    await client.end(); //Close connection to database
+
   }
 });
 // List of all details of that specific type ID
@@ -291,6 +323,10 @@ app.get("/types/:id", async function (req, res) {
     res.send(typeDetails);
   } catch (e) {
     res.status(500).send(e.message);
+  } finally {
+
+    await client.end(); //Close connection to database
+
   }
 });
 
@@ -304,6 +340,10 @@ app.get("/natures", async function (req, res) {
     res.send(result.rows);
   } catch (e) {
     res.status(500).send(e.message);
+  } finally {
+
+    await client.end(); //Close connection to database
+
   }
 });
 
@@ -321,6 +361,10 @@ app.get("/natures/:id", async function (req, res) {
     res.send(result.rows);
   } catch (e) {
     res.status(500).send(e.message);
+  } finally {
+
+    await client.end(); //Close connection to database
+
   }
 });
 
