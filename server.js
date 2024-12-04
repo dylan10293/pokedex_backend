@@ -12,13 +12,13 @@ const upload = multer({ dest: 'uploads/' });
 
 const app = express();
 app.use(express.static("public"));
-const PORT = 8000;
+const PORT = process.env.SERVER_PORT;
 
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
 app.listen(PORT, () => {
-  console.log("Server listening on port" + PORT);
+  console.log("Server listening on port: " + PORT);
 });
 
 const clientConfig = {
@@ -26,7 +26,7 @@ const clientConfig = {
   user: process.env.PG_USER,
   password: process.env.PG_PASSWORD,
   host: process.env.PG_HOST,
-  port: 5432,
+  port: process.env.PG_PORT,
   ssl: {
     rejectUnauthorized: false,
   },
@@ -42,7 +42,7 @@ const updateDatabase = async (query, values, res) => {
       .connect()
     await client.query(query, values);
     res.status(200).send({ message: "Success" });
-    await client.end();
+    await client.end();     //Close connection to database
   } catch (error) {
     console.error(error);
     res.status(300).send({ error: "Failed to execute query" });
@@ -90,13 +90,12 @@ app.get("/pokemon", async function (req, res) {
     const result = await client.query(query);
     res.set("Content-Type", "application/json");
     res.send(result.rows);
+
+    await client.end();     //Close connection to database
+
   } catch (ex) {
     console.log(ex);
     res.status(500).send("Internal Error - No Pokemon Found");
-  } finally {
-
-    await client.end(); //Close connection to database
-
   }
 });
 
@@ -142,12 +141,11 @@ app.get("/pokemon/:id", async function (req, res) {
         `;
     const result = await client.query(query, [id]);
     res.json(result.rows);
+
+    await client.end();     //Close connection to database
+
   } catch (e) {
     res.status(500).send("Internal Server Error");
-  } finally {
-
-    await client.end(); //Close connection to database
-
   }
 });
 
@@ -159,12 +157,11 @@ app.get("/species", async function (req, res) {
     const result = await client.query("SELECT id,name FROM species");
     res.set("Content-Type", "application/json");
     res.send(result.rows);
+
+    await client.end();     //Close connection to database
+
   } catch (e) {
     res.status(500).send(e.message);
-  } finally {
-
-    await client.end(); //Close connection to database
-
   }
 });
 
@@ -180,12 +177,11 @@ app.get("/species/:id", async function (req, res) {
     );
     res.set("Content-Type", "application/json");
     res.send(result.rows);
+
+    await client.end();     //Close connection to database
+
   } catch (e) {
     res.status(500).send(e.message);
-  } finally {
-
-    await client.end(); //Close connection to database
-
   }
 });
 
@@ -203,13 +199,12 @@ app.get("/moves", async function (req, res) {
 
     res.set("Content-Type", "application/json");
     res.send(moves);
+
+    await client.end();     //Close connection to database
+
   } catch (e) {
     res.status(500).send(e.message);
-  } finally {
-
-    await client.end(); //Close connection to database
-
-  }
+  } 
 });
 
 // List of all details of that specific move ID
@@ -232,13 +227,12 @@ app.get("/moves/:id", async function (req, res) {
     }));
     res.set("Content-Type", "application/json");
     res.send(move);
+
+    await client.end();     //Close connection to database
+
   } catch (e) {
     console.log(e);
     res.status(500).send(e.Message);
-  } finally {
-
-    await client.end(); //Close connection to database
-
   }
 });
 
@@ -260,12 +254,11 @@ app.get("/pokemon/types/:type", async function (req, res) {
     );
     res.set("Content-Type", "application/json");
     res.send(result.rows);
+
+    await client.end();     //Close connection to database
+
   } catch (e) {
     res.status(500).send(e.message);
-  } finally {
-
-    await client.end(); //Close connection to database
-
   }
 });
 
@@ -282,12 +275,11 @@ app.get("/types", async function (req, res) {
     }));
     res.set("Content-Type", "application/json");
     res.send(types);
+
+    await client.end();     //Close connection to database
+
   } catch (e) {
     res.status(500).send(e.message);
-  } finally {
-
-    await client.end(); //Close connection to database
-
   }
 });
 // List of all details of that specific type ID
@@ -316,12 +308,11 @@ app.get("/types/:id", async function (req, res) {
     }));
     res.set("Content-Type", "application/json");
     res.send(typeDetails);
+
+    await client.end();     //Close connection to database
+
   } catch (e) {
     res.status(500).send(e.message);
-  } finally {
-
-    await client.end(); //Close connection to database
-
   }
 });
 
@@ -333,12 +324,11 @@ app.get("/natures", async function (req, res) {
     const result = await client.query("SELECT name FROM natures");
     res.set("Content-Type", "application/json");
     res.send(result.rows);
+
+    await client.end();     //Close connection to database
+
   } catch (e) {
     res.status(500).send(e.message);
-  } finally {
-
-    await client.end(); //Close connection to database
-
   }
 });
 
@@ -354,12 +344,11 @@ app.get("/natures/:id", async function (req, res) {
     );
     res.set("Content-Type", "application/json");
     res.send(result.rows);
+
+    await client.end();     //Close connection to database
+
   } catch (e) {
     res.status(500).send(e.message);
-  } finally {
-
-    await client.end(); //Close connection to database
-
   }
 });
 
@@ -420,15 +409,13 @@ app.post("/pokemon", async (req, res) => {
     res.set("Content-Type", "application/json");
     res.send("Pokemon added successfully!");
 
+    await client.end();     //Close connection to database
+
   } catch (ex) {
 
     res.status(300).send("RROR - Details provided in incorrect format");
 
-  } finally {
-
-    await client.end(); //Close connection to database
-
-  }
+  } 
 });
 
 //Post and add a new species
@@ -449,13 +436,11 @@ app.post("/pokemon/species", async (req, res) => {
     res.set("Content-Type", "application/json");
     res.send("Species added successfully!");
 
+    await client.end();     //Close connection to database
+
   } catch (ex) {
 
     res.status(500).send("ERROR - Details provided in incorrect format");
-
-  } finally {
-
-    await client.end(); //Close connection to database
 
   }
 });
@@ -484,13 +469,11 @@ app.post("/pokemon/moves", async (req, res) => {
     res.set("Content-Type", "application/json");
     res.send("Move added successfully!");
 
+    await client.end();     //Close connection to database
+
   } catch (ex) {
 
     res.status(500).send("RROR - Details provided in incorrect format");
-
-  } finally {
-
-    await client.end(); //Close connection to database
 
   }
 });
@@ -532,13 +515,11 @@ app.post("/types", async (req, res) => {
     res.set("Content-Type", "application/json");
     res.send("Type added successfully!");
 
+    await client.end();     //Close connection to database
+
   } catch (ex) {
 
     res.status(500).send("RROR - Details provided in incorrect format");
-
-  } finally {
-
-    await client.end(); //Close connection to database
 
   }
 });
@@ -564,15 +545,13 @@ app.post("/nature", async (req, res) => {
     res.set("Content-Type", "application/json");
     res.send("Nature added successfully!");
 
+    await client.end();     //Close connection to database
+
   } catch (ex) {
 
     res.status(500).send("ERROR - Details provided in incorrect format");
 
-  } finally {
-
-    await client.end();     //Close connection to database
-
-  }
+  } 
 });
 
 app.put("/pokemon", async (req, res) => {
@@ -727,6 +706,9 @@ app.delete("/species/:id", async function (req, res) {
     await client.query("DELETE FROM species WHERE id = $1", [id]);
 
     res.status(200).send(`Deleted successfully`);
+
+    await client.end();     //Close connection to database
+    
   } catch (e) {
     res.status(500).send(e.message);
   }
@@ -741,6 +723,9 @@ app.delete("/natures/:id", async function (req, res) {
     await client.query("DELETE FROM natures WHERE id = $1", [id]);
 
     res.status(200).send(`Deleted successfully`);
+
+    await client.end();     //Close connection to database
+
   } catch (e) {
     res.status(500).send(e.message);
   }
@@ -754,6 +739,9 @@ app.delete("/types/:id", async function (req, res) {
     await client.query("DELETE FROM types WHERE id = $1", [id]);
 
     res.status(200).send(`Deleted successfully`);
+
+    await client.end();     //Close connection to database
+
   } catch (e) {
     res.status(500).send(e.message);
   }
@@ -767,6 +755,9 @@ app.delete("/moves/:id", async function (req, res) {
     await client.query("DELETE FROM moves WHERE id = $1", [id]);
 
     res.status(200).send(`Deleted successfully`);
+
+    await client.end();     //Close connection to database
+
   } catch (e) {
     res.status(500).send(e.message);
   }
@@ -785,6 +776,9 @@ app.delete("/pokemon/:id", async function (req, res) {
     await client.query("DELETE FROM pokemon WHERE id = $1", [id]);
 
     res.status(200).send(`Deleted successfully`);
+
+    await client.end();     //Close connection to database
+
   } catch (e) {
     res.status(500).send(e.message);
   }
