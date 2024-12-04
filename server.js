@@ -22,7 +22,6 @@ app.listen(PORT, () => {
 });
 
 const clientConfig = {
-
   user: process.env.PG_USER,
   password: process.env.PG_PASSWORD,
   host: process.env.PG_HOST,
@@ -94,7 +93,7 @@ app.get("/pokemon", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (ex) {
-    res.status(500).send({error:e});
+    res.status(500).send({ error: e });
   }
 });
 
@@ -144,7 +143,7 @@ app.get("/pokemon/:id", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send({error:e});
+    res.status(500).send({ error: e });
   }
 });
 
@@ -160,7 +159,7 @@ app.get("/species", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send({error:e});
+    res.status(500).send({ error: e });
   }
 });
 
@@ -180,7 +179,7 @@ app.get("/species/:id", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send({error:e});
+    res.status(500).send({ error: e });
   }
 });
 
@@ -202,8 +201,8 @@ app.get("/moves", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send({error:e});
-  } 
+    res.status(500).send({ error: e });
+  }
 });
 
 // List of all details of that specific move ID
@@ -231,7 +230,7 @@ app.get("/moves/:id", async function (req, res) {
 
   } catch (e) {
     console.log(e);
-    res.status(500).send({error:e});
+    res.status(500).send({ error: e });
   }
 });
 
@@ -257,7 +256,7 @@ app.get("/pokemon/types/:type", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send({error:e});
+    res.status(500).send({ error: e });
   }
 });
 
@@ -278,7 +277,7 @@ app.get("/types", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send({error:e});
+    res.status(500).send({ error: e });
   }
 });
 // List of all details of that specific type ID
@@ -311,7 +310,7 @@ app.get("/types/:id", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send({error:e});
+    res.status(500).send({ error: e });
   }
 });
 
@@ -327,7 +326,7 @@ app.get("/natures", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send({error:e});
+    res.status(500).send({ error: e });
   }
 });
 
@@ -347,7 +346,7 @@ app.get("/natures/:id", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send({error:e});
+    res.status(500).send({ error: e });
   }
 });
 
@@ -406,15 +405,15 @@ app.post("/pokemon", async (req, res) => {
     });
 
     res.set("Content-Type", "application/json");
-    res.send({message:"Pokemon added successfully!"});
+    res.send({ message: "Pokemon added successfully!" });
 
     await client.end();     //Close connection to database
 
   } catch (ex) {
 
-    res.status(300).send({error:"ERROR - Details provided in incorrect format"});
+    res.status(300).send({ error: "ERROR - Details provided in incorrect format" });
 
-  } 
+  }
 });
 
 //Post and add a new species
@@ -433,13 +432,13 @@ app.post("/pokemon/species", async (req, res) => {
     );
 
     res.set("Content-Type", "application/json");
-    res.send({message:"Species added successfully!"});
+    res.send({ message: "Species added successfully!" });
 
     await client.end();     //Close connection to database
 
   } catch (ex) {
 
-    res.status(300).send({error:"ERROR - Details provided in incorrect format"});
+    res.status(300).send({ error: "ERROR - Details provided in incorrect format" });
 
   }
 });
@@ -466,13 +465,13 @@ app.post("/pokemon/moves", async (req, res) => {
     );
 
     res.set("Content-Type", "application/json");
-    res.send({message:"Move added successfully!"});
+    res.send({ message: "Move added successfully!" });
 
     await client.end();     //Close connection to database
 
   } catch (ex) {
 
-    res.status(300).send({error:"ERROR - Details provided in incorrect format"});
+    res.status(300).send({ error: "ERROR - Details provided in incorrect format" });
 
   }
 });
@@ -496,7 +495,7 @@ app.post("/types", async (req, res) => {
     //Queries for inserting details into type_effectiveness table for strengths
     type_strengths.forEach((id) => {
       const type_strength_query = client.query(
-        "INSERT INTO TYPE_EFFECTIVENESS(attacking_type_id, defending_type_id, effectiveness) VALUES($1::integer, $2::integer, 0.3);",
+        "INSERT INTO TYPE_EFFECTIVENESS(attacking_type_id, defending_type_id, effectiveness) VALUES($1::integer, $2::integer, 2.0);",
         [type_id, id]
       );
     });
@@ -506,19 +505,19 @@ app.post("/types", async (req, res) => {
     //Queries for inserting details into type_effectiveness table for weaknesses
     type_weaknesses.forEach((id) => {
       const type_strength_query = client.query(
-        "INSERT INTO TYPE_EFFECTIVENESS(attacking_type_id, defending_type_id, effectiveness) VALUES($1::integer, $2::integer, 0.2);",
+        "INSERT INTO TYPE_EFFECTIVENESS(attacking_type_id, defending_type_id, effectiveness) VALUES($1::integer, $2::integer, 2.0);",
         [id, type_id]
       );
     });
 
     res.set("Content-Type", "application/json");
-    res.send({message:"Type added successfully!"});
+    res.send({ message: "Type added successfully!" });
 
     await client.end();     //Close connection to database
 
   } catch (ex) {
 
-    res.status(300).send({error:"ERROR - Details provided in incorrect format"});
+    res.status(300).send({ error: "ERROR - Details provided in incorrect format" });
 
   }
 });
@@ -542,15 +541,15 @@ app.post("/nature", async (req, res) => {
     );
 
     res.set("Content-Type", "application/json");
-    res.send({message:"Nature added successfully!"});
+    res.send({ message: "Nature added successfully!" });
 
     await client.end();     //Close connection to database
 
   } catch (ex) {
 
-    res.status(300).send({error:"ERROR - Details provided in incorrect format"});
+    res.status(300).send({ error: "ERROR - Details provided in incorrect format" });
 
-  } 
+  }
 });
 
 app.put("/pokemon", async (req, res) => {
@@ -709,7 +708,7 @@ app.delete("/species/:id", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send(e.message);
+    res.status(500).send({ error: e.message });
   }
 });
 
@@ -726,7 +725,7 @@ app.delete("/natures/:id", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send(e.message);
+    res.status(500).send({ error: e.message });
   }
 });
 // Delete a specific type by ID
@@ -742,7 +741,7 @@ app.delete("/types/:id", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send(e.message);
+    res.status(500).send({ error: e.message });
   }
 });
 // Delete a specific move by ID
@@ -758,7 +757,7 @@ app.delete("/moves/:id", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send(e.message);
+    res.status(500).send({ error: e.message });
   }
 });
 // Delete a specific pokemon by ID
@@ -779,7 +778,7 @@ app.delete("/pokemon/:id", async function (req, res) {
     await client.end();     //Close connection to database
 
   } catch (e) {
-    res.status(500).send(e.message);
+    res.status(500).send({ error: e.message });
   }
 });
 
