@@ -322,14 +322,18 @@ app.get("/natures/:id", async function (req, res) {
   }
 });
 
+//Post and add a new pokemon
 app.post("/pokemon", async (req, res) => {
   try {
     const pokemon = req.body["pokemons"][0];
     const stats = pokemon["stats"];
     const moves = pokemon["moves"];
     const types = pokemon["type"];
+
     const client = new Client(clientConfig);
-    await client.connect();
+    await client.connect();     //Connect to database
+
+    //Query for inserting details into pokemon table and return the new row inserted
     const pokemon_query = await client.query(
       "INSERT INTO POKEMON(name,height,weight,species_id) VALUES ($1::text,$2::integer,$3::integer,$4::integer) RETURNING *;",
       [
@@ -339,7 +343,10 @@ app.post("/pokemon", async (req, res) => {
         parseInt(pokemon["species_id"]),
       ]
     );
-    let pokemon_row = pokemon_query["rows"][0];
+
+    let pokemon_row = pokemon_query["rows"][0]; //recently inserted row from pokemon table
+
+    //Query for inserting details into pokemon_base_stats table
     const pokemon_base_stats_query = await client.query(
       "INSERT INTO POKEMON_BASE_STATS(pokemon_id,hp,attack,defense,special_attack,special_defense,speed) VALUES ($1::smallint,$2::smallint,$3::smallint,$4::smallint,$5::smallint,$6::smallint,$7::smallint);",
       [
@@ -352,12 +359,16 @@ app.post("/pokemon", async (req, res) => {
         stats["speed"],
       ]
     );
+
+    //Queries for inserting details into pokemon_moves table
     await moves.forEach(async (id) => {
       let pokemon_moves_query = await client.query(
         "INSERT INTO POKEMON_MOVES(pokemon_id,move_id) VALUES ($1::integer,$2::integer);",
         [parseInt(pokemon_row["id"]), parseInt(id)]
       );
     });
+
+    //Queries for inserting details into pokemon_types table
     types.forEach(async (id) => {
       let pokemon_types_query = await client.query(
         "INSERT INTO POKEMON_TYPES(pokemon_id,type_id) VALUES ($1::integer,$2::integer)",
@@ -367,34 +378,55 @@ app.post("/pokemon", async (req, res) => {
 
     res.set("Content-Type", "application/json");
     res.send("Pokemon added successfully!");
+
   } catch (ex) {
-    console.log(ex);
-    res.status(500).send("ERROR - INTERNAL SERVER ERROR");
+
+    res.status(300).send("RROR - Details provided in incorrect format");
+
+  } finally {
+
+    await client.end(); //Close connection to database
+
   }
 });
 
 app.post("/pokemon/species", async (req, res) => {
   try {
+
     const species = req.body;
+
     const client = new Client(clientConfig);
-    await client.connect();
+    await client.connect();     //Connect to database
+
+    //Query for inserting details into species table
     const result = await client.query(
       "INSERT INTO SPECIES(name) VALUES ($1::text);",
       [species["species_name"]]
     );
+
     res.set("Content-Type", "application/json");
     res.send("Specie added successfully!");
+
   } catch (ex) {
-    console.log(ex);
-    res.status(500).send("ERROR - INTERNAL SERVER ERROR");
+
+    res.status(500).send("RROR - Details provided in incorrect format");
+
+  } finally {
+
+    await client.end(); //Close connection to database
+
   }
 });
 
 app.post("/pokemon/moves", async (req, res) => {
   try {
+
     const moves = req.body;
+
     const client = new Client(clientConfig);
-    await client.connect();
+    await client.connect();     //Connect to database
+
+    //Query for inserting details into moves table
     const result = await client.query(
       "INSERT INTO MOVES(name,types_id,power,accuracy,power_point) VALUES ($1::text,$2::integer,$3::integer,$4::integer,$5::smallint);",
       [
@@ -405,11 +437,18 @@ app.post("/pokemon/moves", async (req, res) => {
         moves["pp"],
       ]
     );
+
     res.set("Content-Type", "application/json");
     res.send("Move added successfully!");
+
   } catch (ex) {
-    console.log(ex);
-    res.status(500).send("ERROR - INTERNAL SERVER ERROR");
+
+    res.status(500).send("RROR - Details provided in incorrect format");
+
+  } finally {
+
+    await client.end(); //Close connection to database
+
   }
 });
 
@@ -417,15 +456,18 @@ app.post("/types", async (req, res) => {
   try {
     const type = req.body;
     const client = new Client(clientConfig);
-    await client.connect();
+    await client.connect(); //Connect to database
+
+    //Query for inserting details into moves table
     const types_query = await client.query(
       "INSERT INTO TYPES(name,color) VALUES ($1::text,$2::text) RETURNING *;",
       [type["type_name"], type["color"]]
     );
-    const type_id = types_query["rows"][0]["id"];
 
+    const type_id = types_query["rows"][0]["id"];
     const type_strengths = type["strengths"];
 
+    //Queries for inserting details into type_effectiveness table for strengths
     type_strengths.forEach((id) => {
       const type_strength_query = client.query(
         "INSERT INTO TYPE_EFFECTIVENESS(attacking_type_id, defending_type_id, effectiveness) VALUES($1::integer, $2::integer, 0.3);",
@@ -435,19 +477,25 @@ app.post("/types", async (req, res) => {
 
     const type_weaknesses = type["weaknesses"];
 
+    //Queries for inserting details into type_effectiveness table for weaknesses
     type_weaknesses.forEach((id) => {
       const type_strength_query = client.query(
         "INSERT INTO TYPE_EFFECTIVENESS(attacking_type_id, defending_type_id, effectiveness) VALUES($1::integer, $2::integer, 0.2);",
         [id, type_id]
       );
     });
-    //REQUEST TYPE_ID:effecTIveneSS IN OBJECT FORMAT
 
     res.set("Content-Type", "application/json");
     res.send("Type added successfully!");
+
   } catch (ex) {
-    console.log(ex);
-    res.status(500).send("ERROR - INTERNAL SERVER ERROR");
+
+    res.status(500).send("RROR - Details provided in incorrect format");
+
+  } finally {
+
+    await client.end(); //Close connection to database
+
   }
 });
 
@@ -455,8 +503,10 @@ app.post("/nature", async (req, res) => {
   try {
     const species = req.body;
     const client = new Client(clientConfig);
-    await client.connect();
-    const result = await client.query(
+    await client.connect();     //Connect to database
+
+    //Query for inserting details into moves table
+    const nature_query = await client.query(
       "INSERT INTO NATURES(name, increased_stat, decreased_stat, description) VALUES ($1::text,$2::text,$3::text, $4::text);",
       [
         species["name"],
@@ -465,11 +515,18 @@ app.post("/nature", async (req, res) => {
         species["description"],
       ]
     );
+
     res.set("Content-Type", "application/json");
     res.send("Nature added successfully!");
+
   } catch (ex) {
-    console.log(ex);
-    res.status(500).send("ERROR - INTERNAL SERVER ERROR");
+
+    res.status(500).send("ERROR - Details provided in incorrect format");
+
+  } finally {
+
+    await client.end();     //Close connection to database
+
   }
 });
 
@@ -697,8 +754,9 @@ app.post('/upload', upload.single('image'), async (req, res) => {
         Body: fileStream, ContentType: file.mimetype }; 
         try { 
             await s3.send(new PutObjectCommand(uploadParams)); 
-            fs.unlinkSync(file.path); 
-            // Delete file from local server after upload 
+            fs.unlinkSync(file.path); // Delete file from local server after upload 
+
+            res.set("Content-Type", "application/json");
             res.send('File uploaded successfully to AWS S3!'); 
         } catch (err) { 
             console.error('Error uploading file:', err); 
