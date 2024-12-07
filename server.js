@@ -1,6 +1,7 @@
 "use strict";;
 const { Client } = require("pg");
 const express = require("express");
+const cors = require('cors'); 
 const multer = require('multer');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const fs = require('fs');
@@ -9,6 +10,10 @@ require('dotenv').config();
 
 const s3 = new S3Client({ region: process.env.AWS_REGION });
 const upload = multer({ dest: 'uploads/' });
+const corsConfig = { 
+  origin: '*', 
+  optionsSuccessStatus: 200, 
+  }; 
 
 const app = express();
 app.use(express.static("public"));
@@ -361,6 +366,13 @@ app.post("/pokemon", async (req, res) => {
     const client = new Client(clientConfig);
     await client.connect();     //Connect to database
 
+    if(!moves||moves.length===0){
+      throw new Error("Moves is Empty");
+    }
+
+    if(!types||types.length===0){
+      throw new Error("Moves is Empty");
+
     //Query for inserting details into pokemon table and return the new row inserted
     const pokemon_query = await client.query(
       "INSERT INTO POKEMON(name,height,weight,species_id) VALUES ($1::text,$2::integer,$3::integer,$4::integer) RETURNING *;",
@@ -388,8 +400,11 @@ app.post("/pokemon", async (req, res) => {
       ]
     );
 
+    console.log(moves);
+    console.log(types);
+
     //Queries for inserting details into pokemon_moves table
-    await moves.forEach(async (id) => {
+    moves.forEach(async (id) => {
       let pokemon_moves_query = await client.query(
         "INSERT INTO POKEMON_MOVES(pokemon_id,move_id) VALUES ($1::integer,$2::integer);",
         [parseInt(pokemon_row["id"]), parseInt(id)]
@@ -397,17 +412,24 @@ app.post("/pokemon", async (req, res) => {
     });
 
     //Queries for inserting details into pokemon_types table
-    types.forEach(async (id) => {
-      let pokemon_types_query = await client.query(
-        "INSERT INTO POKEMON_TYPES(pokemon_id,type_id) VALUES ($1::integer,$2::integer)",
-        [pokemon_row["id"], id]
-      );
-    });
+    for (const id of types) {
+      await client.query(
+          "INSERT INTO POKEMON_TYPES(pokemon_id,type_id) VALUES ($1::integer,$2::integer)",
+          [pokemon_row["id"], id]
+        );
+    }
 
     res.set("Content-Type", "application/json");
     res.send({ message: "Pokemon added successfully!" });
 
-    await client.end();     //Close connection to database
+    console.log("hi");
+
+    await client.end();
+
+    // setTimeout(() => {
+    //   console.log("end now")
+    //   client.end();     //Close connection to database
+    // }, 10000);
 
   } catch (ex) {
 
