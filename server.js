@@ -99,7 +99,7 @@ app.get("/pokemon", async function (req, res) {
 
     await client.end();     //Close connection to database
 
-  } catch (ex) {
+  } catch (e) {
     res.status(500).send({ error: e });
   }
 });
