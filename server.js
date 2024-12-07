@@ -22,6 +22,8 @@ const PORT = process.env.SERVER_PORT;
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
+app.use(cors(corsConfig)); 
+
 app.listen(PORT, () => {
   console.log("Server listening on port: " + PORT);
 });
