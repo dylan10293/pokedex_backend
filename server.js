@@ -365,16 +365,17 @@ app.post("/pokemon", async (req, res) => {
 
     const client = new Client(clientConfig);
     await client.connect();     //Connect to database
-
+    
     if(!moves||moves.length===0){
       throw new Error("Moves is Empty");
     }
-
+    
     if(!types||types.length===0){
       throw new Error("Moves is Empty");
+    }
 
-    //Query for inserting details into pokemon table and return the new row inserted
-    const pokemon_query = await client.query(
+     //Query for inserting details into pokemon table and return the new row inserted
+     const pokemon_query = await client.query(
       "INSERT INTO POKEMON(name,height,weight,species_id) VALUES ($1::text,$2::integer,$3::integer,$4::integer) RETURNING *;",
       [
         pokemon["pokemon_name"],
@@ -426,17 +427,12 @@ app.post("/pokemon", async (req, res) => {
 
     await client.end();
 
-    // setTimeout(() => {
-    //   console.log("end now")
-    //   client.end();     //Close connection to database
-    // }, 10000);
-
-  } catch (ex) {
-
+  } catch (error) {
     res.status(300).send({ error: "ERROR - Details provided in incorrect format" });
-
   }
-});
+})
+
+
 
 //Post and add a new species
 app.post("/pokemon/species", async (req, res) => {
