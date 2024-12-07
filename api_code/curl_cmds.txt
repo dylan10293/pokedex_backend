@@ -1,0 +1,28 @@
+curl -X POST "http://localhost:8000/pokemon/species?details=\{\"species_name\":\"Tiny%20Turtle\"\}"
+
+curl -X POST "http://localhost:8000/pokemon/species?details=\{\"species_name\":\"Tiny%20Turtle\"\}"
+
+curl -X GET "http://localhost:8000/pokemon"
+
+curl -X POST http://localhost:8000/pokemon?details="{\"pokemons\":[{\"pokemon_name\":\"Pikachu\",\"species_id\":1,\"moves\":[1,2],\"type\":[1,2],\"height\":71.1,\"weight\":15,\"stats\":{\"hp\":67,\"attack\":55,\"defense\":33,\"special_attack\":25,\"special_defense\":88,\"speed\":20}}]}"
+
+
+curl -X POST http://localhost:8000/pokemon -d "details={\"pokemons\":[{\"pokemon_name\":\"Pikachu\",\"species_id\":1,\"moves\":[1,2],\"type\":[1,2],\"height\":71.1,\"weight\":15,\"stats\":{\"hp\":67,\"attack\":55,\"defense\":33,\"special_attack\":25,\"special_defense\":88,\"speed\":20}}]}"
+
+ curl -X POST http://localhost:8000/pokemon/species?details="\{\"species_name\":\"Tiny%20Turtle%20Pokemon\"\}"
+
+curl -X POST http://localhost:8000/pokemon/moves?details="\{\"move_name\":\"Body%20Slam\",\"type_id\":2,\"power\":45,\"accuracy\":100,\"pp\":25,\"category\":\"Physical\"\}"
+
+curl -X POST http://localhost:8000/types?details="\{\"type_name\":\"Water\",\"strengths\":\[\"Grass\",\"Ice\",\"Bug\",\"Steel\"\],\"weaknesses\":\[\"Poison\",\"Rock\",\"Fire\"\],\"immunities\":\[\]\}"
+
+curl -X POST http://localhost:8000/types?details="\{\"type_name\":\"Water\",\"strengths\":\[1,6,7,8\],\"weaknesses\":\[2,5\],\"immunities\":\[\]\}"
+
+curl -X POST http://localhost:8000/nature?details="\{\"name\":\"Adamant\",\"increased_stat\":\"Attack\",\"decreased_stat\":\"SpecialAttack\",\"description\":\"IncreasesAttackwhiledecreasingSpecialAttack,commonlyusedtomaximizephysicaldamageoutput.\"\}"
+
+curl -X DELETE http://localhost:8000/natures/3
+
+curl -X DELETE http://localhost:8000/types/3
+
+curl -X DELETE http://localhost:8000/moves/4
+
+curl -X DELETE http://localhost:8000/pokemon/18
