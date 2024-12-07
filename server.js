@@ -2,10 +2,6 @@
 const { Client } = require("pg");
 const express = require("express");
 const cors = require('cors'); 
-const corsConfig = { 
-origin: '*', 
-optionsSuccessStatus: 200, 
-}; 
 const multer = require('multer');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const fs = require('fs');
@@ -20,7 +16,6 @@ const corsConfig = {
   }; 
 
 const app = express();
-app.use(cors(corsConfig)); 
 app.use(express.static("public"));
 const PORT = process.env.SERVER_PORT;
 
@@ -847,8 +842,4 @@ app.post('/upload', upload.single('image'), async (req, res) => {
     res.status(500).send('Error uploading file');
 
   }
-});
-
-app.get('/',(req,res)=>{
-  res.sendFile(__dirname+'/api_code/img_form.html');
 });
